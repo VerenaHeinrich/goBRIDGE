@@ -109,6 +109,10 @@ run_STARsolo ()
   if [[ $species == "human" ]]; then
   source $META_DIR/STAR.param.human.sh
   fi
+  
+  if [[ $species == "rat" ]]; then
+  source $META_DIR/STAR.param.rat.sh
+  fi
 
   for acc in "${accession_list[@]}"
   do
