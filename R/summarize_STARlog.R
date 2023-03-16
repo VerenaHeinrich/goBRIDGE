@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+
 args <-  commandArgs(trailingOnly=TRUE)
 accession_list <- args[1]
 dir <- args[2]

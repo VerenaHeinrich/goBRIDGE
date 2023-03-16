@@ -135,6 +135,7 @@ read_plate_design(file, BC){
   
   df <- NULL
   counter=0
+  
   # create table:
   for(r in 1:8){
     for(c in 1:12){

@@ -46,13 +46,13 @@ while getopts "hfcps:" option; do
          ;;
       p) # count pattern in fastq files given a list with accessions and a whitelist
          count_pattern_in_reads $DATA_DIR $META_DIR'whitelist96' $META_DIR/accessions
-         Rscript R/summarize_pattern.R $META_DIR/accessions $DATA_DIR/ $FIGURES_DIR/
+         #Rscript R/summarize_pattern.R $META_DIR/accessions $DATA_DIR/ $FIGURES_DIR/
          echo "works count"
          ;;
       s) # run STAR solo
          SPECIES="$OPTARG"
          run_STARsolo $DATA_DIR $RESULTS_DIR $REFERENCE_DIR $SPECIES $META_DIR'whitelist96' $META_DIR/accessions
-         Rscript R/summarize_STARlog.R $META_DIR/accessions $RESULTS_DIR $FIGURES_DIR/
+         #Rscript R/summarize_STARlog.R $META_DIR/accessions $RESULTS_DIR $FIGURES_DIR/
          echo 'works star'
          ;;
       \?) # Invalid option
