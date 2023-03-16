@@ -48,7 +48,7 @@ bay_colors <- function(palette = 'help'){
 read_lists <- function(list, col.label=NULL){
   d <- read.table(list)
   if(! is.null(col.label)) colnames(d) <- col.label
-  return(d)
+  return(data.frame(d))
 }
 
 # read star log file:
@@ -104,17 +104,20 @@ summarize_pattern_count <- function(data_dir, out, accession_list){
   df <- NULL
   for(acc in accessions$accession){
     this <- read.table(paste0(data_dir, acc, '/pattern_counts.txt'), header=T)
-    if(is.null(df)) df <- this
-    else df <- rbind(df, this)
+    if(is.null(df)) {df <- this }
+    else{ df <- rbind(df, this) }
   }
   
   melt <- reshape2::melt(df)
   melt$run <- gsub('_.*','',basename(melt$sample))
   melt$pair <- ifelse(grepl('_R1_',melt$sample), 'R1', 'R2')
+  melt$lane <- gsub('.*_L','L',basename(melt$sample))
+  melt$lane <- gsub('_R.*','',melt$lane)
   
-  gg <- ggplot(melt, aes(x=pattern, y=value, col=run, shape=pair)) +
+  gg <- ggplot(melt, aes(x=pattern, y=value, col=run, shape=lane)) +
     geom_point() +
     theme_classic()+
+    facet_grid(.~pair)+
     theme(axis.text.x = element_text(angle=90, hjust = 1),
           axis.ticks.x = element_blank(),
           legend.position = 'right')+
@@ -123,35 +126,35 @@ summarize_pattern_count <- function(data_dir, out, accession_list){
     scale_y_continuous(
       trans = "log10"
     )
-  ggsave(gg, device='png', width = 300, height = 100, units='mm',
+  ggsave(gg, device='png', width = 500, height = 100, units='mm',
          file=paste0(out, paste(unlist(accessions), collapse='_'), '.BC.counts.png'))
 }
-
-# read excel file
-read_plate_design(file, BC){
-  d <- read_excel(file, col_names=T)
-  d <- d[,-1]
-  bc <-  read.table(BC)
-  
-  df <- NULL
-  counter=0
-  
-  # create table:
-  for(r in 1:8){
-    for(c in 1:12){
-      counter <- counter+1
-      this <- data.frame(BAY_ID=as.character(d[r,c]),
-                         BC=bc$V1[counter])
-      if(is.null(df)) df <- this
-      else df <- rbind(df, this)
-    }
-  }
-  
-  # add replicate information:
-  df$rep <- 1
-  tab <- table(df$BAY_ID)
-  for(this in names(tab)){
-    df$rep[df$BAY_ID==this] <- seq(tab[this])
-  }
-    
-}
+# 
+# # read excel file
+# read_plate_design(file, BC){
+#   d <- read_excel(file, col_names=T)
+#   d <- d[,-1]
+#   bc <-  read.table(BC)
+#   
+#   df <- NULL
+#   counter=0
+#   
+#   # create table:
+#   for(r in 1:8){
+#     for(c in 1:12){
+#       counter <- counter+1
+#       this <- data.frame(BAY_ID=as.character(d[r,c]),
+#                          BC=bc$V1[counter])
+#       if(is.null(df)) df <- this
+#       else df <- rbind(df, this)
+#     }
+#   }
+#   
+#   # add replicate information:
+#   df$rep <- 1
+#   tab <- table(df$BAY_ID)
+#   for(this in names(tab)){
+#     df$rep[df$BAY_ID==this] <- seq(tab[this])
+#   }
+#     
+# }
