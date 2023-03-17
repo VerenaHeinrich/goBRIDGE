@@ -97,9 +97,11 @@ run_STARsolo ()
   local dir_to_results=$2
   local dir_to_reference=$3
   local species=$4
-  local whitelist=$5
-  local accession_list=$6
+  local accession_list=$5
   local accession_list=( $(read_accession $accession_list) )
+  
+  # get STAR parameter:
+  source $META_DIR/STAR.param.GENERAL.sh
   
   if [ ! -d "$dir_to_reference$species" ]; then
     echo "$dir_to_reference$species does not exist."
@@ -124,32 +126,37 @@ run_STARsolo ()
       mkdir $OUT_PREFIX
       mkdir $OUT
     fi
-    
-    fastq_files=`find $dir_to_fastq -type f -name "${acc}*"|sort`
-    fastq_array=(${fastq_files//:/ })  
-  echo $fastq_files
-    $STAR \
-    --outSAMattributes NH HI AS nM MD \
+  
+  # get fastq files:
+  fastq_files=`find $dir_to_fastq -type f -name "${acc}*"|sort`
+  fastq_array=(${fastq_files//:/ })  
+
+  $STAR \
+    --outSAMmapqUnique $outSAMmapqUnique \
+    --outSAMunmapped $outSAMunmapped \
+    --soloStrand $soloStrand \
+    --quantMode $quantMode \
+    --outBAMsortingThreadN $outBAMsortingThreadN \
+    --soloType $soloType \
+    --soloUMIdedup $soloUMIdedup \
+    --soloCellFilter $soloCellFilter \
+    --soloBarcodeReadLength $soloBarcodeReadLength \
+    --soloFeatures $soloFeatures \
+    --outSAMattributes $outSAMattributes \
     --runThreadN $THREADS \
     --genomeDir $REFERENCE \
     --sjdbGTFfile $GTF \
-    --outSAMunmapped Within \
-    KeepPairs \
-    --outSAMtype BAM \
-    SortedByCoordinate \
-    --outSAMorder Paired \
-    --limitBAMsortRAM 60413900847 \
-    --readFilesCommand gunzip -c \
+    --outFilterMultimapNmax $outFilterMultimapNmax \
+    --outSAMtype $outSAMtype \
+    --outSAMorder $outSAMorder \
+    --limitBAMsortRAM $limitBAMsortRAM \
+    --readFilesCommand $readFilesCommand \
     --outFileNamePrefix $OUT \
     --readFilesIn ${fastq_array[1]} ${fastq_array[0]} \
-    --soloType CB_UMI_Simple \
-    --soloStrand Forward \
-    --soloCBstart 25 \
-    --soloCBlen 10 \
-    --soloUMIstart 17 \
-    --soloUMIlen 8 \
-    --soloBarcodeReadLength 0 \
-    --soloFeatures Gene GeneFull SJ Velocyto \
+    --soloCBstart $soloCBstart \
+    --soloCBlen $soloCBlen \
+    --soloUMIstart $soloUMIstart \
+    --soloUMIlen $soloUMIlen \
     --soloCBwhitelist $whitelist
     
     echo "results are here: "$OUT

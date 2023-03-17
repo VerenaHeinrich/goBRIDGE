@@ -50,7 +50,7 @@ while getopts "hfcps:" option; do
          ;;
       s) # run STAR solo
          SPECIES="$OPTARG"
-         run_STARsolo $DATA_DIR $RESULTS_DIR $REFERENCE_DIR $SPECIES $META_DIR'whitelist96' $META_DIR/accessions
+         run_STARsolo $DATA_DIR $RESULTS_DIR $REFERENCE_DIR $SPECIES $META_DIR/accessions
          Rscript R/summarize_STARlog.R $META_DIR/accessions $RESULTS_DIR $FIGURES_DIR/
          ;;
       \?) # Invalid option
