@@ -26,10 +26,10 @@ help ()
    echo
    echo "options:"
    echo "h     Print this Help."
-   echo "f     Runs fastqc on fastq files given a list with accessions (e.g. BRM1). Each line one accession."
-   echo "c     Counts reads in fastq files given a list with accessions. See option 'f'."
-   echo "p     Counts pattern/Barcodes in fastq files given a list with accessions and a list with pattern."    
-   echo "s     Run STARsolo given a list of accessions (see option 'f') and a species (e.g. 'human' or 'rat')."
+   echo "f     Runs fastqc on fastq files given a list with accessions"
+   echo "c     Counts reads in fastq files given a list with accessions"
+   echo "p     Counts pattern/Barcodes in fastq files given a list with accessions and a list with pattern"    
+   echo "s     Run STARsolo given a list of accessions and a species (e.g. 'human' or 'rat')"
    echo
 }
 
@@ -44,8 +44,9 @@ while getopts "hfcps:" option; do
       c) # count reads in fastq files given a list with accessions
          count_reads_in_fastq $DATA_DIR $META_DIR/accessions
          ;;
-      p) # count pattern in fastq files given a list with accessions and a whitelist
-         count_pattern_in_reads $DATA_DIR $META_DIR'whitelist96' $META_DIR/accessions
+      p) # count pattern in fastq files given a list with accessions and text file with pattern
+         PATTERN_FILE="$OPTARG"
+         count_pattern_in_reads $DATA_DIR $PATTERN_FILE $META_DIR/accessions
          Rscript R/summarize_pattern.R $META_DIR/accessions $DATA_DIR/ $FIGURES_DIR/
          ;;
       s) # run STAR solo
