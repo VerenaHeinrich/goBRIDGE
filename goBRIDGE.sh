@@ -33,7 +33,7 @@ help ()
    echo
 }
 
-while getopts "hfcps:" option; do
+while getopts "hfcp:s:" option; do
    case $option in
       h) # display Help
          help

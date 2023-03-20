@@ -42,6 +42,7 @@ count_pattern_in_reads ()
   local dir_to_fastq=$1
   local pattern_file=$2
   local accession_list=$3
+ 
   local accession_list=( $(read_accession $accession_list) )
   
   for acc in "${accession_list[@]}"
