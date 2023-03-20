@@ -129,32 +129,112 @@ summarize_pattern_count <- function(data_dir, out, accession_list){
   ggsave(gg, device='png', width = 500, height = 100, units='mm',
          file=paste0(out, paste(unlist(accessions), collapse='_'), '.BC.counts.png'))
 }
-# 
-# # read excel file
-# read_plate_design(file, BC){
-#   d <- read_excel(file, col_names=T)
-#   d <- d[,-1]
-#   bc <-  read.table(BC)
-#   
-#   df <- NULL
-#   counter=0
-#   
-#   # create table:
-#   for(r in 1:8){
-#     for(c in 1:12){
-#       counter <- counter+1
-#       this <- data.frame(BAY_ID=as.character(d[r,c]),
-#                          BC=bc$V1[counter])
-#       if(is.null(df)) df <- this
-#       else df <- rbind(df, this)
-#     }
-#   }
-#   
-#   # add replicate information:
-#   df$rep <- 1
-#   tab <- table(df$BAY_ID)
-#   for(this in names(tab)){
-#     df$rep[df$BAY_ID==this] <- seq(tab[this])
-#   }
-#     
-# }
+
+
+# read excel file
+read_plate_design <- function(excel){
+  d <- read_excel(excel, col_names=T, sheet=1, progress=F)
+  d <- d[,-1]
+  bc <-  read_excel(excel, col_names=F, sheet=2, progress=F)
+
+  plate_design <- NULL
+  counter=0
+
+  # create table:
+  for(r in 1:8){
+    for(c in 1:12){
+      counter <- counter+1
+      this <- data.frame(BAY_ID=as.character(d[r,c]),
+                         BC=as.character(bc[counter, 1]))
+      if(is.null(plate_design)) plate_design <- this
+      else plate_design <- rbind(plate_design, this)
+    }
+  }
+
+  # add replicate information:
+  plate_design$plate_rep <- 1
+  tab <- table(plate_design$BAY_ID)
+  for(this in names(tab)){
+    plate_design$plate_rep[plate_design$BAY_ID==this] <- seq(tab[this])
+  }
+  return(plate_design)
+}
+
+# assign experiment to plate given a list of accessions and a plate design with barcodes (excel format):
+create_design_table_for_all_accessions <- function(excel, accession_list) {
+  plate_design <- suppressMessages(read_plate_design(excel))
+  accessions <- read_lists(accession_list, 'accession')
+  
+  plate_design_all <- NULL
+  for(acc in accessions$accession){
+    tmp <- data.frame(plate_design, plate=acc, sample=paste0(acc, '_', plate_design$BC))
+    if(is.null(plate_design_all)) plate_design_all <- tmp
+    else plate_design_all <- rbind(plate_design_all, tmp)
+  }
+  
+  # add replicate information:
+  plate_design_all$rep <- 1
+  tab <- table(plate_design_all$BAY_ID)
+  for(this in names(tab)){
+    plate_design_all$rep[plate_design_all$BAY_ID==this] <- seq(tab[this])
+  }
+
+  return(plate_design_all)
+}
+
+# read STARsolo results:
+read_STARsolo <- function(dir, acc) {
+  library(data.table)
+  library(Matrix)
+  
+  matrix_dir <- paste0(dir, acc,'/STARsolo/Solo.out/Gene/raw/')
+  f <- file(paste0(matrix_dir, "umiDedup-1MM_All.mtx"), "r")
+  mat <- as.data.frame(as.matrix(readMM(f)))
+  close(f)
+  feature.names = fread(paste0(matrix_dir, "features.tsv"), header = FALSE,
+                        stringsAsFactors = FALSE, data.table = F)
+  barcode.names = fread(paste0(matrix_dir, "barcodes.tsv"), header = FALSE,
+                        stringsAsFactors = FALSE, data.table = F)
+  colnames(mat) <- unlist(lapply(barcode.names$V1, function(x) paste0(acc, '_', x)))
+  rownames(mat) <- feature.names$V1
+  return(mat)
+}
+
+# create count matrix for all:
+create_count_matrix_for_all <- function(dir, accession_list){
+  accessions <- read_lists(accession_list, 'accession')
+  
+  mat_all <- NULL
+  for(acc in accessions$accession){
+    tmp <- read_STARsolo(dir, acc)
+    if(is.null(mat_all)) mat_all <- tmp
+    else mat_all <- cbind(mat_all, tmp)
+  }
+  return(mat_all)
+}
+
+# run deseq2 for 2 conditions
+run_deseq <- function(dir, accession_list, excel, padj_t = 0.05, log2fc_t = 1){
+  library(DESeq2)
+  meta <- create_design_table_for_all_accessions(excel, accession_list)
+  matrix <- create_count_matrix_for_all(dir, accession_list)
+  
+  dds <- DESeqDataSetFromMatrix(countData = matrix,
+                                colData = meta,
+                                design = as.formula(" ~ plate+BAY_ID")
+  )
+  
+  # simple filtering:
+  keep <- rowSums(counts(dds) >= 10) >= 3 # at least 3 samples with a count of 10 or more
+  keep <- rowSums(counts(dds) >= 1) >= 20
+  
+  
+  dds <- dds[keep,]
+  
+  dds$BAY_ID <- relevel(dds$BAY_ID, ref = "DMSO")
+  dds_deseq <- DESeq(dds)
+  
+}
+
+
+

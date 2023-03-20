@@ -2,19 +2,18 @@
 ## kit specific parameter:
 
 # our protocol:
-local soloCBstart=25
-local soloCBlen=10
-local soloUMIstart=17
-local soloUMIlen=8
-local whitelist=$META_DIR'whitelist96'  
+#local soloCBstart=25
+#local soloCBlen=10
+#local soloUMIstart=17
+#local soloUMIlen=8
+#local whitelist=$META_DIR'whitelist96'  
 
 # alithea:  
-#local soloCBstart=1
-#local soloCBlen=14
-#local soloUMIstart=15
-#local soloUMIlen=14
-#local whitelist=$META_DIR'barcodes_96_V5A_brb'  
-
+local soloCBstart=1
+local soloCBlen=14
+local soloUMIstart=15
+local soloUMIlen=14
+local whitelist=$META_DIR'barcodes_96_V5A_brb'  
 
 ## general parameter for STAR alignment:
 local outSAMmapqUnique=60

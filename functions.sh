@@ -71,22 +71,23 @@ count_pattern_in_reads ()
 run_fastqc ()
 {
   local dir_to_fastq=$1
-  local dir_to_results=$2
-  local accession_list=$5
+  local accession_list=$2
   local accession_list=( $(read_accession $accession_list) )
    
   for acc in "${accession_list[@]}"
   do
-    OUT_PREFIX=$dir_to_results$acc"/"
-    OUT=$OUT_PREFIX/fastqc/
+    OUT_PREFIX=$dir_to_fastq$acc"/"
     if [ ! -d "$OUT_PREFIX" ]; then
       mkdir $OUT_PREFIX
+    fi
+    OUT=$OUT_PREFIX/fastqc/
+     if [ ! -d "$OUT" ]; then
       mkdir $OUT
     fi
     
     echo $acc
     fastq_files=`find $dir_to_fastq -type f -name "${acc}*"|sort`
-    fastqc $fastq_files 
+    fastqc -o $OUT $fastq_files
     
     echo "results are here: "$OUT
   done
