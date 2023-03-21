@@ -87,7 +87,7 @@ run_fastqc ()
     
     echo $acc
     fastq_files=`find $dir_to_fastq -type f -name "${acc}*"|sort`
-    fastqc -o $OUT $fastq_files
+    fastqc -o $OUT $fastq_files &
     
     echo "results are here: "$OUT
   done
